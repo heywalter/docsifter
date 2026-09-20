@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="DocSifter">DocSifter</title>
+    <!-- Vendored, not fetched from a CDN: DocSifter is meant to run offline and
+         on closed networks, and a CDN would both break the UI there and show a
+         third party who is using it. Regenerate with tools/build_vendor_assets.py. -->
+    <link href="{{ url_for('static', filename='vendor/tailwind.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/fontawesome.min.css') }}" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .loading {
+            display: none;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .loading.show {
+            display: block;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: #10b981;
+        }
+        .notification.error {
+            background-color: #ef4444;
+        }
+        .notification.warning {
+            background-color: #f59e0b;
+        }
+        .notification.info {
+            background-color: #3b82f6;
+        }
+        
+        .suggestions-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .suggestion-item:hover {
+            background-color: #f3f4f6;
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-item.duplicate-warning {
+            background-color: #fef2f2;
+            color: #dc2626;
+            cursor: default;
+        }
+        .suggestion-item.duplicate-warning:hover {
+            background-color: #fef2f2;
+        }
+        
+        .suggestion-item.existing-item {
+            color: #374151;
+        }
+        .suggestion-item.existing-item:hover {
+            background-color: #e0f2fe;
+        }
+        
+        .suggestion-header {
+            padding: 6px 12px;
+            background-color: #f9fafb;
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .warning-icon, .info-icon {
+            margin-right: 8px;
+            font-style: normal;
+        }
+        
+        .whitelist-item.selected {
+            background-color: #dbeafe !important;
+        }
+        
+        .whitelist-item.highlighted {
+            background-color: #fef3c7 !important;
+            border: 2px solid #f59e0b;
+            animation: highlight-pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes highlight-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .running-task-pulse {
+            animation: running-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes running-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+        }
+        
+        .progress-bar-animated {
+            background: linear-gradient(90deg, #f97316, #fb923c, #f97316);
+            background-size: 200% 100%;
+            animation: progress-shimmer 2s ease-in-out infinite;
+        }
+        
+        @keyframes progress-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .pagination button {
+            transition: all 0.2s;
+        }
+        .pagination button:hover {
+            transform: translateY(-1px);
+        }
+        .pagination button.active {
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* GitHub Webhook configuration */
+        .auto-config-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .auto-config-panel.expanded {
+            max-height: 800px;
+        }
+        
+        .detection-method-card {
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        .detection-method-card.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-indicator.success {
+            background-color: #10b981;
+        }
+        .status-indicator.warning {
+            background-color: #f59e0b;
+        }
+        .status-indicator.error {
+            background-color: #ef4444;
+        }
+        .status-indicator.inactive {
+            background-color: #6b7280;
+        }
+        
+        .config-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .config-details.expanded {
+            max-height: 400px;
+        }
+        
+        .token-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .token-status.configured {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .token-status.not-configured {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-robot text-white text-2xl mr-3"></i>
+                    <h1 class="text-white text-xl font-bold" data-i18n="DocSifter">DocSifter</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="langToggleBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-language mr-2"></i>English
+                    </button>
+                    <button id="configBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-cog mr-2"></i>配置
+                    </button>
+                    <button id="githubMonitorBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fab fa-github mr-2"></i>GitHub Webhook
+                    </button>
+                    <button id="emailNotificationBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-envelope mr-2"></i>邮件通知
+                    </button>
+                    <button id="whitelistBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-list mr-2"></i>白名单
+                    </button>
+                    <button id="falsePositiveBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>误报管理
+                    </button>
+                    <button id="historyBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-history mr-2"></i>历史记录
+                    </button>
+                    <button id="statsBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-chart-bar mr-2"></i>统计
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover" id="runningTasksCard">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-play-circle text-orange-500 text-2xl" id="runningTasksIcon"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">运行中任务</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="runningTasksCount">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div id="runningTasksDetails" class="mt-3 hidden">
+                        <div class="space-y-2" id="runningTasksList">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">扫描文件数</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="totalFiles">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-edit text-green-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">有效修改数</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="validChanges">0</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-percentage text-yellow-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">千字缺陷率</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="defectRate">0‰</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg card-hover">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock text-purple-500 text-2xl"></i>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">最后更新</dt>
+                                <dd class="text-lg font-medium text-gray-900" id="lastUpdate">--</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-play-circle mr-2 text-blue-500"></i>文档纠错处理
+                </h3>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">本地目录处理</label>
+                    <div class="text-sm text-gray-600 mb-3">
+                        <p>选择要处理的本地目录。如需处理 GitHub 仓库，请使用右上角的 <i class="fab fa-github"></i> GitHub Webhook 功能。</p>
+                    </div>
+                </div>
+                
+                <div id="localModeSection" class="mb-6">
+                    <label for="directory" class="block text-sm font-medium text-gray-700 mb-2">
+                        选择处理目录
+                    </label>
+                    <div class="flex space-x-3">
+                        <input type="text" id="directory" 
+                               class="flex-1 shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                               placeholder="输入目录路径，如: ./examples/sample-docs" value="./examples/sample-docs" data-i18n-placeholder="输入目录路径，如: ./examples/sample-docs">
+                        <button id="browseBtn" 
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i class="fas fa-folder-open mr-2"></i>浏览
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="modelSelect" class="block text-sm font-medium text-gray-700 mb-2">
+                        选择纠错模型
+                    </label>
+                    <select id="modelSelect" 
+                            class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        <option value="rule-based" selected>规则预览模式（默认，无需模型）</option>
+                        <option value="shibing624/chinese-text-correction-1.5b">中文纠错 - 通用版 (1.5B，推荐，CPU 可尝试)</option>
+                        <option value="shibing624/chinese-text-correction-7b">中文纠错 - 增强版 (7B)</option>
+                        <option value="twnlp/ChineseErrorCorrector3-4B">中文纠错 - ChineseErrorCorrector3 (4B)</option>
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">规则预览模式无需模型；安装模型依赖后，推荐先使用 1.5B 小模型进行 AI 审查。保存 Webhook 配置时会记录当前选择。</p>
+                    
+                    <div id="currentModelStatus" class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md hidden">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <span class="text-sm text-blue-700">
+                                当前使用模型: <span id="currentModelName" class="font-medium">-</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="mb-6">
+                    <div class="flex items-center space-x-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="debugMode" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">调试模式</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="autoGenerate" checked class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">自动生成报告</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button id="startProcessBtn" 
+                            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-play mr-2"></i>开始处理
+                    </button>
+                    <button id="viewReportBtn" 
+                            class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-file-alt mr-2"></i>查看报告
+                    </button>
+                    <button id="downloadLatestReportBtn"
+                            class="inline-flex items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-download mr-2"></i>下载报告
+                    </button>
+                </div>
+
+                <div id="progressContainer" class="mt-6 loading">
+                    <div class="flex justify-between items-center text-sm text-gray-600 mb-2">
+                        <span>处理进度</span>
+                        <div class="flex items-center space-x-3">
+                            <span id="progressText">0%</span>
+                            <button id="cancelTaskBtn"
+                                    class="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
+                                <i class="fas fa-stop mr-1"></i>取消任务
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="logContainer" class="mt-6 loading">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">处理日志</h4>
+                    <div id="logOutput" class="bg-gray-900 text-green-400 p-4 rounded-md h-64 overflow-y-auto font-mono text-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="configModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">系统配置</h3>
+                    <button id="closeConfigModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="configContent" class="max-h-[70vh] overflow-y-auto pr-1">
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="saveConfigBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        保存配置
+                    </button>
+                    <button id="cancelConfigBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="statsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">详细统计</h3>
+                    <button id="closeStatsModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="statsContent">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="whitelistModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-5 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-4/5 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">白名单管理</h3>
+                    <button id="closeWhitelistModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex space-x-3 mb-2">
+                        <div class="flex-1 relative">
+                            <input type="text" id="newWhitelistItem" placeholder="输入白名单词汇，支持自动建议" 
+                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                                   data-i18n-placeholder="输入白名单词汇，支持自动建议">
+                            <div id="whitelistSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg hidden"></div>
+                        </div>
+                        <button id="addWhitelistBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            <i class="fas fa-plus mr-1"></i>添加
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex space-x-3 items-center">
+                            <div class="relative">
+                                <input type="text" id="whitelistSearch" placeholder="搜索白名单词汇" 
+                                       class="border border-gray-300 rounded-md px-3 py-2 text-sm w-64"
+                                       data-i18n-placeholder="搜索白名单词汇">
+                                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                            </div>
+                            <span id="whitelistStats" class="text-sm text-gray-600">总计: 0 | 筛选: 0 | 已选: 0</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="selectAllWhitelistBtn" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">
+                                <i class="fas fa-check-square mr-1"></i>全选
+                            </button>
+                            <button id="clearWhitelistSelectionBtn" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">
+                                <i class="fas fa-square mr-1"></i>取消选择
+                            </button>
+                            <button id="batchDeleteWhitelistBtn" class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                <i class="fas fa-trash mr-1"></i>批量删除
+                            </button>
+                            <button id="exportWhitelistBtn" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                <i class="fas fa-download mr-1"></i>导出
+                            </button>
+                            <button id="importWhitelistBtn" class="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700">
+                                <i class="fas fa-upload mr-1"></i>导入
+                            </button>
+                            <input type="file" id="whitelistFileInput" accept=".json,.txt" class="hidden">
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        当前白名单词汇 (<span id="whitelistCount">0</span> 个)
+                    </div>
+                </div>
+                
+                <div id="whitelistContent" class="max-h-80 overflow-y-auto border border-gray-200 rounded-md">
+                </div>
+                
+                <div id="whitelistPagination" class="mt-3">
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="saveWhitelistBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <i class="fas fa-save mr-1"></i>保存白名单
+                    </button>
+                    <button id="cancelWhitelistBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="falsePositiveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-5 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">误报管理</h3>
+                    <button id="closeFalsePositiveModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4 p-4 bg-gray-50 rounded-md">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3">
+                            <button id="addFalsePositiveBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                                <i class="fas fa-plus mr-2"></i>添加误报
+                            </button>
+                            <button id="batchDeleteFalsePositiveBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm">
+                                <i class="fas fa-trash mr-2"></i>批量删除
+                            </button>
+                            <button id="exportFalsePositiveBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm">
+                                <i class="fas fa-download mr-2"></i>导出
+                            </button>
+                            <button id="importFalsePositiveBtn" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm">
+                                <i class="fas fa-upload mr-2"></i>导入
+                            </button>
+                            <input type="file" id="falsePositiveFileInput" accept=".json" class="hidden">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="selectAllFalsePositiveBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                全选
+                            </button>
+                            <button id="clearFalsePositiveSelectionBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">
+                                清空
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4 p-4 bg-gray-50 rounded-md">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">搜索原文</label>
+                            <input type="text" id="falsePositiveSearchOriginal" placeholder="搜索原文内容" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n-placeholder="搜索原文内容">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">搜索修正文本</label>
+                            <input type="text" id="falsePositiveSearchCorrected" placeholder="搜索修正文本" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n-placeholder="搜索修正文本">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">匹配类型</label>
+                            <select id="falsePositiveFilterType" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">全部类型</option>
+                                <option value="exact">精确匹配</option>
+                                <option value="pattern">模式匹配</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="searchFalsePositiveBtn" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                                <i class="fas fa-search mr-2"></i>搜索
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4 text-sm text-gray-600">
+                    <span id="falsePositiveStats">总计: 0 | 筛选: 0 | 已选: 0</span>
+                </div>
+                
+                <div class="border border-gray-200 rounded-md">
+                    <div class="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                        <div class="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
+                            <div class="col-span-1">选择</div>
+                            <div class="col-span-4">原文</div>
+                            <div class="col-span-4">修正文本</div>
+                            <div class="col-span-1">类型</div>
+                            <div class="col-span-1">时间</div>
+                            <div class="col-span-1">操作</div>
+                        </div>
+                    </div>
+                    <div id="falsePositiveList" class="max-h-96 overflow-y-auto">
+                    </div>
+                </div>
+                
+                <div id="falsePositivePagination" class="mt-4">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="addFalsePositiveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">添加误报记录</h3>
+                    <button id="closeAddFalsePositiveModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">原文内容</label>
+                        <textarea id="newFalsePositiveOriginal" rows="3" placeholder="输入原文内容" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n-placeholder="输入原文内容"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">修正文本</label>
+                        <textarea id="newFalsePositiveCorrected" rows="3" placeholder="输入修正文本" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n-placeholder="输入修正文本"></textarea>
+                    </div>
+                    <div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="newFalsePositiveIsPattern" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">作为模式匹配</span>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">备注说明（可选）</label>
+                        <input type="text" id="newFalsePositiveNote" placeholder="添加备注说明" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" data-i18n-placeholder="添加备注说明">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="saveFalsePositiveBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        保存
+                    </button>
+                    <button id="cancelAddFalsePositiveBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-5/6 lg:w-4/5 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">执行历史记录</h3>
+                    <button id="closeHistoryModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">目录</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">开始时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">完成时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="historyPagination" class="flex justify-center mt-4">
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                    <h4 class="text-sm font-medium text-blue-900 mb-3">
+                        <i class="fas fa-file-alt mr-2"></i>报告查看选项
+                    </h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="reportType" value="filtered" checked class="form-radio text-blue-600">
+                                <span class="ml-2 text-sm text-gray-700">过滤版报告（推荐）</span>
+                            </label>
+                            <span class="text-xs text-gray-500">- 已自动过滤误报，适合分享和下载</span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="reportType" value="full" class="form-radio text-blue-600">
+                                <span class="ml-2 text-sm text-gray-700">完整版报告</span>
+                            </label>
+                            <span class="text-xs text-gray-500">- 包含所有检测结果，可标记新误报</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button id="refreshTaskHistoryBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <i class="fas fa-sync-alt mr-1"></i>刷新
+                    </button>
+                    <button id="closeHistoryFooterBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">任务详情</h3>
+                    <button id="closeTaskDetailModal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">基本信息</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">任务ID</label>
+                            <p id="taskDetailId" class="mt-1 text-sm text-gray-900"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">状态</label>
+                            <p id="taskDetailStatus" class="mt-1 text-sm"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">目录</label>
+                            <p id="taskDetailDirectory" class="mt-1 text-sm text-gray-900"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">开始时间</label>
+                            <p id="taskDetailStartTime" class="mt-1 text-sm text-gray-900"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">完成时间</label>
+                            <p id="taskDetailEndTime" class="mt-1 text-sm text-gray-900"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500">进度</label>
+                            <div class="mt-1">
+                                <div class="bg-gray-200 rounded-full h-2">
+                                    <div id="taskDetailProgress" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                                <p id="taskDetailProgressText" class="text-xs text-gray-500 mt-1">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">统计信息</h4>
+                    <div id="taskDetailStats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8">
+                            <button id="logsTab" class="tab-button active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
+                                执行日志
+                            </button>
+                            <button id="progressTab" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                进度记录
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+                
+                <div id="logsContent" class="tab-content">
+                    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-4 bg-gray-50">
+                        <div id="taskLogs" class="space-y-2">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="progressContent" class="tab-content hidden">
+                    <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-4 bg-gray-50">
+                        <div id="taskProgress" class="space-y-2">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mt-6">
+                    <div class="space-x-3">
+                        <button id="downloadTaskReportBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            <i class="fas fa-download mr-1"></i>下载报告
+                        </button>
+                        <button id="deleteTaskBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            <i class="fas fa-trash mr-1"></i>删除任务
+                        </button>
+                    </div>
+                    <button id="closeTaskDetailFooterBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="githubMonitorModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    <i class="fab fa-github mr-2 text-blue-600"></i>GitHub Webhook 监控
+                </h3>
+                <button id="closeGithubMonitorModal" class="text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <div class="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-3">
+                        <i class="fas fa-robot mr-2 text-blue-600"></i>Webhook 自动审阅
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-search text-green-500 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-800">自动监控</p>
+                                <p class="text-sm text-gray-600">通过 Webhook 实时接收 PR 变更事件</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-magic text-purple-500 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-800">智能纠错</p>
+                                <p class="text-sm text-gray-600">自动对变更文件执行 AI 纠错</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-envelope text-blue-500 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-800">邮件通知</p>
+                                <p class="text-sm text-gray-600">处理完成后自动发送通知邮件</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-history text-orange-500 mt-1"></i>
+                            <div>
+                                <p class="font-medium text-gray-800">执行历史</p>
+                                <p class="text-sm text-gray-600">完整记录每次处理的详细信息</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-cog mr-2 text-blue-500"></i>基础配置
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="monitorRepoUrl" class="block text-sm font-medium text-gray-700 mb-2">
+                                    GitHub 仓库 URL <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="monitorRepoUrl"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="https://github.com/owner/repository">
+                                <p class="text-xs text-gray-500 mt-1">输入要监控的 GitHub 仓库完整 URL</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Webhook URL</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="monitorWebhookUrl" readonly
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <button id="copyMonitorWebhookUrlBtn"
+                                            class="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm transition-colors">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">配置到 GitHub 仓库 Webhooks 的 Payload URL</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Webhook Secret</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="monitorWebhookSecret" readonly
+                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <button id="copyMonitorWebhookSecretBtn"
+                                            class="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm transition-colors">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-2">
+                                    <button id="regenerateMonitorWebhookSecretBtn"
+                                            class="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm font-medium transition-colors">
+                                        <i class="fas fa-redo mr-1"></i>重新生成 Secret
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-sliders-h mr-2 text-purple-500"></i>高级配置
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">监控事件</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="monitorPrOpen" checked
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">PR 创建</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="monitorPrUpdate" checked
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">PR 更新</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="monitorPrReopen" checked
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">PR 重开</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">处理选项</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="autoReviewEnabled" checked
+                                               class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">启用自动 AI 纠错</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="onlyChangedFiles" checked
+                                               class="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">仅处理变更文件</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="emailNotificationEnabled" checked
+                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-gray-700">完成后发送邮件通知</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <button id="saveRepoConfigBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                        <i class="fas fa-save mr-2"></i>保存监控配置
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-heartbeat mr-2 text-red-500"></i>监控状态
+                        </h4>
+                        <div id="githubMonitorStatus" class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                                    <span class="text-sm font-medium text-gray-700">监控状态</span>
+                                </div>
+                                <span class="text-sm text-gray-600">加载中...</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 mt-4">
+                            <button id="startMonitoringBtn"
+                                    class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg">
+                                <i class="fas fa-play mr-2"></i>启动监控
+                            </button>
+                            <button id="stopMonitoringBtn"
+                                    class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg opacity-50 cursor-not-allowed"
+                                    disabled>
+                                <i class="fas fa-stop mr-2"></i>停止监控
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-chart-bar mr-2 text-blue-500"></i>统计信息
+                        </h4>
+                        <div id="monitoringStats" class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-clock text-blue-500"></i>
+                                    <span class="text-sm font-medium text-gray-700">最后检查</span>
+                                </div>
+                                <span id="lastCheckTime" class="text-sm text-gray-600">未知</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-tasks text-green-500"></i>
+                                    <span class="text-sm font-medium text-gray-700">处理任务</span>
+                                </div>
+                                <span id="totalTasks" class="text-sm text-gray-600">0</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-alt text-purple-500"></i>
+                                    <span class="text-sm font-medium text-gray-700">处理文件</span>
+                                </div>
+                                <span id="monitorTotalFiles" class="text-sm text-gray-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-history mr-2 text-orange-500"></i>执行历史
+                        </h4>
+                        <div class="flex space-x-2">
+                            <button id="refreshReviewHistoryBtn" class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-sync-alt mr-1"></i>刷新
+                            </button>
+                            <button id="clearHistoryBtn" class="px-3 py-1 text-sm text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:bg-red-50 transition-colors">
+                                <i class="fas fa-trash mr-1"></i>清空
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PR</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件数</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">修正数</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">耗时</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviewHistoryList" class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">
+                                            <i class="fas fa-inbox text-gray-300 text-2xl mb-2 block"></i>
+                                            暂无执行历史记录
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between">
+                        <div class="text-sm text-gray-500">
+                            显示最近 <span id="historyCount">0</span> 条记录
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="prevPageBtn" class="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i class="fas fa-chevron-left mr-1"></i>上一页
+                            </button>
+                            <button id="nextPageBtn" class="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                下一页<i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-terminal mr-2 text-green-500"></i>事件日志
+                        </h4>
+                        <button id="refreshMonitorLogsBtn" class="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors">
+                            <i class="fas fa-sync-alt mr-1"></i>刷新
+                        </button>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="p-4 bg-gray-900 text-green-400 font-mono text-sm max-h-60 overflow-y-auto">
+                            <div id="monitorLogsList">
+                                <div class="text-gray-500 text-center py-4">
+                                    暂无事件日志
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">
+                            <span>最多显示最近50条记录</span>
+                            <span id="lastMonitorEventTime">最后事件时间: 未知</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white z-10">
+                <button id="closeGithubMonitorFooterBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="emailNotificationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <i class="fas fa-envelope mr-2 text-red-500"></i>邮件通知设置
+                </h3>
+                <button id="closeEmailNotificationModal" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <h4 class="text-md font-medium text-gray-900 mr-3">
+                                <i class="fas fa-toggle-on mr-2 text-green-500"></i>邮件通知总开关
+                            </h4>
+                            <span id="emailConfigStatus" class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">未配置</span>
+                        </div>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="enableEmailNotifications" checked
+                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">启用邮件通知</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <h4 class="text-md font-medium text-gray-900 mb-3">
+                        <i class="fas fa-server mr-2 text-blue-500"></i>邮件服务配置
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="emailSmtpServer" class="block text-sm font-medium text-gray-700 mb-1">
+                                SMTP 服务器
+                            </label>
+                            <input type="text" id="emailSmtpServer" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="例如: smtp.gmail.com" data-i18n-placeholder="例如: smtp.gmail.com">
+                        </div>
+                        <div>
+                            <label for="emailSmtpPort" class="block text-sm font-medium text-gray-700 mb-1">
+                                SMTP 端口
+                            </label>
+                            <input type="number" id="emailSmtpPort" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="例如: 587" value="587" data-i18n-placeholder="例如: 587">
+                        </div>
+                        <div>
+                            <label for="emailUsername" class="block text-sm font-medium text-gray-700 mb-1">
+                                SMTP 用户名
+                            </label>
+                            <input type="text" id="emailUsername" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="例如: user@example.com" data-i18n-placeholder="例如: user@example.com">
+                        </div>
+                        <div>
+                            <label for="emailPassword" class="block text-sm font-medium text-gray-700 mb-1">
+                                SMTP 密码
+                            </label>
+                            <input type="password" id="emailPassword" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="输入 SMTP 密码或应用专用密码" data-i18n-placeholder="输入 SMTP 密码或应用专用密码">
+                        </div>
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="emailUseTls" checked
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700">使用 TLS 加密</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <h4 class="text-md font-medium text-gray-900 mb-3">
+                        <i class="fas fa-bell mr-2 text-yellow-500"></i>通知设置
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="emailSender" class="block text-sm font-medium text-gray-700 mb-1">
+                                发件人邮箱
+                            </label>
+                            <input type="email" id="emailSender" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="例如: user@example.com" data-i18n-placeholder="例如: user@example.com">
+                        </div>
+                        <div>
+                            <label for="emailRecipients" class="block text-sm font-medium text-gray-700 mb-1">
+                                收件人邮箱
+                            </label>
+                            <input type="text" id="emailRecipients" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="多个邮箱用逗号分隔" data-i18n-placeholder="多个邮箱用逗号分隔">
+                        </div>
+                        <div>
+                            <label for="emailSubjectTemplate" class="block text-sm font-medium text-gray-700 mb-1">
+                                邮件主题模板
+                            </label>
+                            <input type="text" id="emailSubjectTemplate" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="例如: [DocSifter] {task_type} 检测报告 - {date}"
+                                   value="[DocSifter] {task_type} 检测报告 - {date}" data-i18n-placeholder="例如: [DocSifter] {task_type} 检测报告 - {date}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                通知触发条件
+                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="notifyOnLocalComplete" checked
+                                           class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-700">本地目录检测完成</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="notifyOnGithubComplete" checked
+                                           class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-700">GitHub 仓库检测完成</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="notifyOnError" checked
+                                           class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-700">检测过程出错</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="attachReport" checked
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700">附加HTML报告到邮件</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <h4 class="text-md font-medium text-gray-900 mb-3">
+                        <i class="fas fa-paper-plane mr-2 text-green-500"></i>测试邮件
+                    </h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="testEmailRecipient" class="block text-sm font-medium text-gray-700 mb-1">
+                                测试收件人
+                            </label>
+                            <input type="email" id="testEmailRecipient" 
+                                   class="w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 block sm:text-sm border-gray-300 rounded-md"
+                                   placeholder="输入测试邮件收件人" data-i18n-placeholder="输入测试邮件收件人">
+                        </div>
+                        <div>
+                            <button id="sendTestEmailBtn" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-paper-plane mr-1"></i>发送测试邮件
+                            </button>
+                        </div>
+                        <div id="testEmailResult" class="hidden mt-2 p-2 rounded-md">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button id="saveEmailConfigBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-save mr-1"></i>保存邮件配置
+                    </button>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end sticky bottom-0 bg-white z-10">
+                <button id="closeEmailNotificationFooterBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="/static/js/security.js"></script>
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

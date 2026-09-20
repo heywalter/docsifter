@@ -1,0 +1,22 @@
+= SampleProduct Quick Start Demo
+
+This sample intentionally includes several wording issues so the quick-start
+review produces a visible report.
+
+== 创建工作区
+
+在 SampleProduct 控制台中登陆帐户。
+选择 btn:[Create workspace]。
+如果页面提示参数list为空，请先打开 API 配置页面。
+系统会对项目做过滤，避免处理 SQL 示例和 AsciiDoc 标记。
+
+== 配置访问
+
+为新用户创建帐号，并确认用户可以访问工作区。
+如果任务需要持续检查 Pull Request，请配置 GitHub webhook，不要使用轮循脚本。
+
+[source,sql]
+----
+-- Code blocks should be preserved by the reviewer.
+SELECT * FROM users WHERE action = '登陆';
+----

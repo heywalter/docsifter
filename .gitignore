@@ -1,0 +1,65 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+config.json
+config.local.json
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.tox/
+.nox/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Generated reports
+report.html
+report_*.html
+report_full_*.html
+reports/
+data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and runtime databases
+*.log
+history.db
+github_monitor.db
+
+# Local workspaces not part of the project.
+# These hold video, storyboard, and design source material. They are kept on
+# disk on purpose; they are only excluded from the published repository.
+anime-doc-review-design/
+doc-review-exploded-video/
+markdown-exploded-view/
+doc-review-mobile-video/
+anything2explainer-video/
+anything2explainer-video-en/
+blender-markdown-study/
+docsifter-3d-exploded/
+
+# Internal working notes, never published
+HANDOFF.md

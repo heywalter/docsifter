@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor and the ceiling of the supported range. The versions in
+        # between share a code path with one of these two.
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e .
+      - run: pip install -r requirements-dev.txt
+      # No model weights, no network, no SMTP: the smoke suite is written to
+      # run without any of them, and the model path is verified by hand.
+      - run: python -m pytest tests/smoke
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node --test tests/js/*.test.js
+
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e .
+      # Rule-preview mode only. It exits non-zero if a protection negative was
+      # modified or a rule produced a wrong fix; accuracy is not gated, because
+      # 76 cases cannot support a threshold.
+      - run: python3 benchmarks/run_benchmark.py
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Build and check the distribution
+        run: |
+          pip install build twine
+          python -m build
+          python -m twine check dist/*
+      # Installing and running the wheel is what catches a subpackage or a
+      # data file left out of the manifest; grepping the archive only catches
+      # the cases someone thought to grep for.
+      - name: Install the wheel into a clean environment and run a review
+        run: |
+          python -m venv /tmp/wheel-env
+          /tmp/wheel-env/bin/pip install --quiet dist/*.whl
+          /tmp/wheel-env/bin/docsifter --help
+          /tmp/wheel-env/bin/docsifter ./examples/sample-docs --output /tmp/report.html
+          test -s /tmp/report.html
+      - name: Verify the installed package serves its own assets
+        run: |
+          /tmp/wheel-env/bin/python - <<'PY'
+          from pathlib import Path
+          import docsifter
+          from docsifter.orchestrator import DocumentReviewer
+          from docsifter.web_app import create_flask_app
+
+          root = Path(docsifter.__file__).parent
+          for asset in ("static/vendor/tailwind.min.css", "static/vendor/fa-solid-900.woff2"):
+              assert (root / asset).is_file(), f"missing from the wheel: {asset}"
+
+          client = create_flask_app(DocumentReviewer(server_mode=True)).test_client()
+          for path in ("/", "/static/vendor/tailwind.min.css", "/static/js/app.js"):
+              assert client.get(path).status_code == 200, path
+          print("installed package serves its templates and vendored assets")
+          PY

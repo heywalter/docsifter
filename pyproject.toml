@@ -1,0 +1,88 @@
+[project]
+name = "docsifter"
+version = "0.1.0"
+description = "Local-first small-model AI reviewer for Markdown and AsciiDoc technical documentation"
+readme = "README.md"
+license = "MIT"
+# The wheel carries the vendored Tailwind and Font Awesome files, so their
+# terms travel with it.
+license-files = ["LICENSE", "THIRD-PARTY-NOTICES.md"]
+requires-python = ">=3.10"
+authors = [{ name = "Walter Gui" }]
+maintainers = [{ name = "Walter Gui" }]
+keywords = ["documentation", "review", "ai", "nlp", "asciidoc", "markdown", "chinese"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Natural Language :: Chinese (Simplified)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Documentation",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+  "Flask>=3.0,<4.0",
+  "requests>=2.31",
+  "SQLAlchemy>=2.0",
+]
+
+# The local small-model runtime, installed only when a team wants the full
+# AI workflow: pip install "docsifter[model]". The same pins are mirrored in
+# requirements-model.txt, which the Dockerfile installs before the source is
+# copied in; tests/smoke/test_config_and_files.py keeps the two in step.
+[project.optional-dependencies]
+model = [
+  "accelerate>=1.5,<2",
+  "pycorrector>=1.1,<2",
+  "torch>=2.2,<3",
+  "transformers>=4.45,<4.50",
+]
+
+[project.scripts]
+docsifter = "docsifter.cli:main"
+docsifter-web = "docsifter.start_web:main"
+
+[project.urls]
+Homepage = "https://github.com/heywalter/docsifter"
+Issues = "https://github.com/heywalter/docsifter/issues"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+packages = ["docsifter", "docsifter.web"]
+
+[tool.setuptools.package-data]
+docsifter = [
+  "*.json",
+  "templates/*.html",
+  "templates/report/*",
+  "static/js/*.js",
+  "static/vendor/*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# Keep the existing public type signatures stable for the first release.
+ignore = ["E501", "UP006", "UP007", "UP035"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests/smoke"]
+pythonpath = ["src"]
+addopts = "-q"
+markers = [
+  "integration: tests that need network, external services, or a running server",
+  "model: tests that may download or load ML models",
+  "gpu: tests that require GPU resources",
+]
