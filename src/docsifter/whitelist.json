@@ -1,0 +1,9 @@
+{
+  "whitelist": [
+    "SampleProduct",
+    "API",
+    "SQL",
+    "Markdown",
+    "AsciiDoc"
+  ]
+}

@@ -1,0 +1,99 @@
+<!-- Dashboard Section -->
+<div class="dashboard-section">
+    <div class="dashboard-header">
+        <h2>Review Statistics</h2>
+        <p>Detailed analysis of this document quality review</p>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon files">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10,9 9,9 8,9"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{TOTAL_FILES}}</div>
+                <div class="stat-label">Files scanned</div>
+                <div class="stat-chart">
+                    <div class="chart-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon changes">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{VALID_CHANGES}}<span class="stat-total">/{{TOTAL_CHANGES}}</span></div>
+                <div class="stat-label">Valid corrections</div>
+                <div class="stat-chart">
+                    <div class="chart-bar" style="width: {{VALID_RATIO_PCT}}%;"></div>
+                </div>
+                <div class="stat-note">Whitespace issues: {{WHITESPACE_CHANGES}}</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon chars">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="4,7 4,4 20,4 20,7"/>
+                    <line x1="9" y1="20" x2="15" y2="20"/>
+                    <line x1="12" y1="4" x2="12" y2="20"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{TOTAL_CHARS}}</div>
+                <div class="stat-label">Characters scanned</div>
+                <div class="stat-chart">
+                    <div class="chart-bar" style="width: {{CHARS_PCT}}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon rate">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{AVG_PER_FILE}}</div>
+                <div class="stat-label">Avg. corrections/file</div>
+                <div class="stat-chart">
+                    <div class="chart-bar" style="width: {{AVG_PCT}}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon defect">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{DEFECT_RATE}}‰</div>
+                <div class="stat-label">Defects per 1K chars</div>
+                <div class="stat-chart">
+                    <div class="chart-bar" style="width: {{DEFECT_PCT}}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toggle-container">
+    <button id="toggleDifferencesBtn" class="toggle-btn">Toggle diffs</button>
+    <button id="toggleWhitespaceBtn" class="toggle-btn">Toggle whitespace</button>
+    <button id="toggleFalsePositivesBtn" class="toggle-btn">Hide false positives</button>
+</div>

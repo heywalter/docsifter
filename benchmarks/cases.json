@@ -1,0 +1,468 @@
+{
+  "description": "DocSifter benchmark corpus for Chinese technical documentation review. Each case pairs an input sentence with the expected reviewed output. Cases where expected equals text are negative samples that must NOT be modified. Cases noted paired-plain / paired-tech come in pairs that differ only by one technical token, so guards that skip technically dense text are measurable.",
+  "version": "1.4",
+  "categories": [
+    "terminology",
+    "typo",
+    "grammar",
+    "protection"
+  ],
+  "cases": [
+    {
+      "text": "使用管理员帐号登陆到控制台",
+      "expected": "使用管理员账号登录到控制台",
+      "category": "terminology",
+      "note": "paired-plain: 帐号->账号; 登陆->登录, no technical token"
+    },
+    {
+      "text": "您的帐号已经创建成功",
+      "expected": "您的账号已经创建成功",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "请在帐号设置中修改密码",
+      "expected": "请在账号设置中修改密码",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "多个帐号不能共用一个邮箱",
+      "expected": "多个账号不能共用一个邮箱",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "企业帐户支持子账户分级管理",
+      "expected": "企业账户支持子账户分级管理",
+      "category": "terminology",
+      "note": "帐户->账户 only; 子账户 stays"
+    },
+    {
+      "text": "结算帐户余额将于次日到账",
+      "expected": "结算账户余额将于次日到账",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "点击这个链接就可以登陆到平台了",
+      "expected": "点击这个链接就可以登录到平台了",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "输入密码后登陆系统首页",
+      "expected": "输入密码后登录系统首页",
+      "category": "terminology",
+      "note": "登陆 before 系统 without 到"
+    },
+    {
+      "text": "首次登陆应用时会引导您完善资料",
+      "expected": "首次登录应用时会引导您完善资料",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "这是明确的的的重复用字",
+      "expected": "这是明确的重复用字",
+      "category": "terminology",
+      "note": "a run of 的 collapses to one, not to two"
+    },
+    {
+      "text": "系统每三十秒轮循一次任务状态",
+      "expected": "系统每三十秒轮询一次任务状态",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "采用轮循机制避免请求堆积",
+      "expected": "采用轮询机制避免请求堆积",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "这一章节想对重要建议先阅读",
+      "expected": "这一章节相对重要建议先阅读",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "接口返回的参数list包含分页信息",
+      "expected": "接口返回的参数列表包含分页信息",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "响应体中的参数list为空表示无数据",
+      "expected": "响应体中的参数列表为空表示无数据",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "完成配置后重新登陆客户端即可生效",
+      "expected": "完成配置后重新登录客户端即可生效",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "访客模式无需登陆网站即可浏览公开内容",
+      "expected": "访客模式无需登录网站即可浏览公开内容",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "管理员可以在后台查看登陆状态与操作日志",
+      "expected": "管理员可以在后台查看登录状态与操作日志",
+      "category": "terminology",
+      "note": ""
+    },
+    {
+      "text": "该帐户已被冻结请联系客服处理帐号问题",
+      "expected": "该账户已被冻结请联系客服处理账号问题",
+      "category": "terminology",
+      "note": "both 帐户 and 帐号 in one line"
+    },
+    {
+      "text": "轮循间隔可在参数list中按需调整",
+      "expected": "轮询间隔可在参数列表中按需调整",
+      "category": "terminology",
+      "note": "two rules in one line"
+    },
+    {
+      "text": "登陆页面展示了最新的活动信息",
+      "expected": "登录页面展示了最新的活动信息",
+      "category": "terminology",
+      "note": "web context: 登陆页面 is a misspelling of 登录页面"
+    },
+    {
+      "text": "航班登陆廊桥的时间以现场调度为准",
+      "expected": "航班登陆廊桥的时间以现场调度为准",
+      "category": "terminology",
+      "note": "negative: literal aviation usage"
+    },
+    {
+      "text": "本节介绍如何创建集群并部署应用服务",
+      "expected": "本节介绍如何创建集群并部署应用服务",
+      "category": "terminology",
+      "note": "negative: clean sentence"
+    },
+    {
+      "text": "数据备份任务每天凌晨两点自动执行",
+      "expected": "数据备份任务每天凌晨两点自动执行",
+      "category": "terminology",
+      "note": "negative: clean sentence"
+    },
+    {
+      "text": "升级前请确认磁盘剩余空间充足",
+      "expected": "升级前请确认磁盘剩余空间充足",
+      "category": "terminology",
+      "note": "negative: clean sentence"
+    },
+    {
+      "text": "Kubernetes 集群中的节点分为控制平面与工作节点",
+      "expected": "Kubernetes 集群中的节点分为控制平面与工作节点",
+      "category": "protection",
+      "note": "negative: product name the model happens to leave alone; not whitelisted by default"
+    },
+    {
+      "text": "通过 Nginx 反向代理将流量转发到后端服务",
+      "expected": "通过 Nginx 反向代理将流量转发到后端服务",
+      "category": "protection",
+      "note": "negative: whitelisted product term untouched"
+    },
+    {
+      "text": "运行 kubectl get pods 查看实例状态",
+      "expected": "运行 kubectl get pods 查看实例状态",
+      "category": "protection",
+      "note": "negative: inline command untouched"
+    },
+    {
+      "text": "访问 https://docs.example.com/guide 获取完整教程",
+      "expected": "访问 https://docs.example.com/guide 获取完整教程",
+      "category": "protection",
+      "note": "negative: URL untouched"
+    },
+    {
+      "text": "这份文档介召了系统的整体架构",
+      "expected": "这份文档介绍了系统的整体架构",
+      "category": "typo",
+      "note": "paired-plain: 介召->介绍, no technical token"
+    },
+    {
+      "text": "请按照以下步骤完成环境的安状",
+      "expected": "请按照以下步骤完成环境的安装",
+      "category": "typo",
+      "note": "paired-plain: 安状->安装, no technical token"
+    },
+    {
+      "text": "在提交代码之前请先在本地微调测试一遍再此上传",
+      "expected": "在提交代码之前请先在本地调试测试一遍再次上传",
+      "category": "typo",
+      "note": "model-required compound typo"
+    },
+    {
+      "text": "服务的部暑方式支持容器化与虚机两种",
+      "expected": "服务的部署方式支持容器化与虚机两种",
+      "category": "typo",
+      "note": "paired-plain: 部暑->部署, no technical token"
+    },
+    {
+      "text": "配罝文件修改后需要重启进程才能加载",
+      "expected": "配置文件修改后需要重启进程才能加载",
+      "category": "typo",
+      "note": "paired-plain: 配罝->配置, no technical token"
+    },
+    {
+      "text": "分辩率设置过低会导致图表模糊不清",
+      "expected": "分辨率设置过低会导致图表模糊不清",
+      "category": "typo",
+      "note": "model-required: 分辩率->分辨率"
+    },
+    {
+      "text": "既使网络中断缓存数据也不会丢失",
+      "expected": "即使网络中断缓存数据也不会丢失",
+      "category": "typo",
+      "note": "model-required: 既使->即使"
+    },
+    {
+      "text": "日志文件会占用的磁盘空间越来越多",
+      "expected": "日志文件会占用越来越多的磁盘空间",
+      "category": "grammar",
+      "note": "model-required: awkward structure"
+    },
+    {
+      "text": "我们建议您尽快的完成这次升级操作",
+      "expected": "我们建议您尽快完成这次升级操作",
+      "category": "grammar",
+      "note": "model-required: redundant 地 after 快速 adverb"
+    },
+    {
+      "text": "由于服务器资源不足的原因导致了超时",
+      "expected": "服务器资源不足导致超时",
+      "category": "grammar",
+      "note": "model-required: redundant causative frame"
+    },
+    {
+      "text": "关于这个问题如果有什么疑问可以随时联系我们",
+      "expected": "关于这个问题如果有疑问可以随时联系我们",
+      "category": "grammar",
+      "note": "model-required: redundancy"
+    },
+    {
+      "text": "点击按扭提交表单后页面会自动刷新",
+      "expected": "点击按钮提交表单后页面会自动刷新",
+      "category": "typo",
+      "note": "model-required: 按扭->按钮"
+    },
+    {
+      "text": "数据已备份到本地磁盤的指定目录",
+      "expected": "数据已备份到本地磁盘的指定目录",
+      "category": "typo",
+      "note": "model-required: 磁盤->磁盘"
+    },
+    {
+      "text": "任务队列己经清空无需手动处理",
+      "expected": "任务队列已经清空无需手动处理",
+      "category": "typo",
+      "note": "model-required: 己经->已经"
+    },
+    {
+      "text": "缓存命中率显箸提升响应更快",
+      "expected": "缓存命中率显著提升响应更快",
+      "category": "typo",
+      "note": "model-required: 显箸->显著"
+    },
+    {
+      "text": "更新后的版本兼荣旧的接口协议",
+      "expected": "更新后的版本兼容旧的接口协议",
+      "category": "typo",
+      "note": "model-required: 兼荣->兼容"
+    },
+    {
+      "text": "服务安照运维计划在周末重启",
+      "expected": "服务按照运维计划在周末重启",
+      "category": "typo",
+      "note": "model-required: 安照->按照"
+    },
+    {
+      "text": "请检查配置文挡中的超时设置",
+      "expected": "请检查配置文档中的超时设置",
+      "category": "typo",
+      "note": "model-required: 文挡->文档"
+    },
+    {
+      "text": "插件安裝完成后需要重启对应的服务",
+      "expected": "插件安装完成后需要重启对应的服务",
+      "category": "typo",
+      "note": "model-required: 安裝->安装"
+    },
+    {
+      "text": "这个功能被实现了了很长时间一直很稳定",
+      "expected": "这个功能被实现了很长时间一直很稳定",
+      "category": "grammar",
+      "note": "duplicated 了了"
+    },
+    {
+      "text": "用户可以自己设置自己的的偏好主题",
+      "expected": "用户可以自己设置自己的偏好主题",
+      "category": "grammar",
+      "note": "duplicated 的的"
+    },
+    {
+      "text": "日志文件会自动地进行地轮转与压缩",
+      "expected": "日志文件会自动地进行轮转与压缩",
+      "category": "grammar",
+      "note": "paired-plain: duplicated 地, no technical token"
+    },
+    {
+      "text": "如果遇到故障可以随时随地的联系值班同事",
+      "expected": "如果遇到故障可以随时随地联系值班同事",
+      "category": "grammar",
+      "note": "redundant 地 after 随时随地"
+    },
+    {
+      "text": "我们建议您尽快的完成这次回滚操作",
+      "expected": "我们建议您尽快完成这次回滚操作",
+      "category": "grammar",
+      "note": "redundant 地 after 尽快"
+    },
+    {
+      "text": "由于缓存过期地原因导致了数据不一致",
+      "expected": "缓存过期导致数据不一致",
+      "category": "grammar",
+      "note": "model-required: redundant causative frame"
+    },
+    {
+      "text": "SampleProduct 与 Kubernetes 的集成由 Helm chart 完成",
+      "expected": "SampleProduct 与 Kubernetes 的集成由 Helm chart 完成",
+      "category": "protection",
+      "note": "negative: whitelisted product terms untouched"
+    },
+    {
+      "text": "详细参数见 https://docs.example.com/config#advanced 章节",
+      "expected": "详细参数见 https://docs.example.com/config#advanced 章节",
+      "category": "protection",
+      "note": "negative: URL with anchor untouched"
+    },
+    {
+      "text": "使用 docker logs docsifter-web 查看容器日志",
+      "expected": "使用 docker logs docsifter-web 查看容器日志",
+      "category": "protection",
+      "note": "negative: inline command untouched"
+    },
+    {
+      "text": "查询语句 WHERE status=1 AND role='admin' 用于过滤账号列表",
+      "expected": "查询语句 WHERE status=1 AND role='admin' 用于过滤账号列表",
+      "category": "protection",
+      "note": "negative: inline SQL untouched"
+    },
+    {
+      "text": "环境变量 DOCSIFTER_MODEL_BACKEND 决定使用哪种推理后端",
+      "expected": "环境变量 DOCSIFTER_MODEL_BACKEND 决定使用哪种推理后端",
+      "category": "protection",
+      "note": "negative: env var name untouched"
+    },
+    {
+      "text": "镜像 registry.example.com/docsifter-ai:0.3 已推送到内网仓库",
+      "expected": "镜像 registry.example.com/docsifter-ai:0.3 已推送到内网仓库",
+      "category": "protection",
+      "note": "negative: image reference untouched"
+    },
+    {
+      "text": "参见 RFC 7231 第 2.1 节关于语义的定义",
+      "expected": "参见 RFC 7231 第 2.1 节关于语义的定义",
+      "category": "protection",
+      "note": "negative: standard citation untouched"
+    },
+    {
+      "text": "报告输出到 /var/lib/docsifter/reports 目录并按周清理",
+      "expected": "报告输出到 /var/lib/docsifter/reports 目录并按周清理",
+      "category": "protection",
+      "note": "negative: file path untouched"
+    },
+    {
+      "text": "API 以 JSON 格式返回 response body 与错误码",
+      "expected": "API 以 JSON 格式返回 response body 与错误码",
+      "category": "protection",
+      "note": "negative: mixed English terms untouched"
+    },
+    {
+      "text": "服务默认监听 0.0.0.0:8765 端口可用环境变量覆盖",
+      "expected": "服务默认监听 0.0.0.0:8765 端口可用环境变量覆盖",
+      "category": "protection",
+      "note": "negative: host:port literal untouched"
+    },
+    {
+      "text": "这份文档介召了 API 网关的整体架构",
+      "expected": "这份文档介绍了 API 网关的整体架构",
+      "category": "typo",
+      "note": "paired-tech: same typo beside an acronym; prose that merely names a technology"
+    },
+    {
+      "text": "请按照以下步骤完成 Docker 环境的安状",
+      "expected": "请按照以下步骤完成 Docker 环境的安装",
+      "category": "typo",
+      "note": "paired-tech: same typo beside a product name"
+    },
+    {
+      "text": "服务的部暑方式支持 Kubernetes 与虚机两种",
+      "expected": "服务的部署方式支持 Kubernetes 与虚机两种",
+      "category": "typo",
+      "note": "paired-tech: same typo beside a product name"
+    },
+    {
+      "text": "配罝文件修改后需要重启 Nginx 才能加载",
+      "expected": "配置文件修改后需要重启 Nginx 才能加载",
+      "category": "typo",
+      "note": "paired-tech: same typo beside a product name"
+    },
+    {
+      "text": "任务已已完成后会在列表中显示",
+      "expected": "任务已完成后会在列表中显示",
+      "category": "grammar",
+      "note": "paired-plain: duplicated 已, no technical token"
+    },
+    {
+      "text": "任务已已完成后会在 JSON 响应中显示",
+      "expected": "任务已完成后会在 JSON 响应中显示",
+      "category": "grammar",
+      "note": "paired-tech: same duplication beside an acronym"
+    },
+    {
+      "text": "日志文件会自动地进行地轮转并上传到 S3",
+      "expected": "日志文件会自动地进行轮转并上传到 S3",
+      "category": "grammar",
+      "note": "paired-tech: same duplication beside a service name"
+    },
+    {
+      "text": "使用管理员帐号登陆到 Grafana 控制台",
+      "expected": "使用管理员账号登录到 Grafana 控制台",
+      "category": "terminology",
+      "note": "paired-tech: same terms beside a product name"
+    },
+    {
+      "text": "登陆到 Jenkins 后台查看构建结果",
+      "expected": "登录到 Jenkins 后台查看构建结果",
+      "category": "terminology",
+      "note": "登陆->登录 with a product name between 到 and the context noun"
+    },
+    {
+      "text": "完成配置后请登陆至 AWS 控制台验证",
+      "expected": "完成配置后请登录至 AWS 控制台验证",
+      "category": "terminology",
+      "note": "登陆->登录 after 至, product name in between"
+    },
+    {
+      "text": "诺曼底登陆是二战的转折点之一",
+      "expected": "诺曼底登陆是二战的转折点之一",
+      "category": "protection",
+      "note": "negative: landing sense, not authentication"
+    },
+    {
+      "text": "台风即将登陆华南沿海地区",
+      "expected": "台风即将登陆华南沿海地区",
+      "category": "protection",
+      "note": "negative: landing sense, not authentication"
+    }
+  ]
+}

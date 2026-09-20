@@ -1,0 +1,6 @@
+# Local small-model correction runtime dependencies.
+# Install this file when you want model-powered document review.
+accelerate>=1.5,<2
+pycorrector>=1.1,<2
+torch>=2.2,<3
+transformers>=4.45,<4.50
