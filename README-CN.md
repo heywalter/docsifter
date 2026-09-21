@@ -132,7 +132,7 @@ python3 benchmarks/run_benchmark.py --backend openai --base-url https://your-end
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "docsifter[model] @ git+https://github.com/heywalter/docsifter.git"
+pip install "docsifter[model]"
 
 docsifter ./examples/sample-docs --model shibing624/chinese-text-correction-1.5b
 ```
@@ -157,7 +157,7 @@ shell 会在第一个赋值生效前就展开 `$HF_HOME`，缓存路径会静默
 **仅规则预览**，不下载模型：
 
 ```bash
-pip install git+https://github.com/heywalter/docsifter.git
+pip install docsifter
 docsifter ./examples/sample-docs
 ```
 
@@ -174,7 +174,7 @@ docsifter /path/to/documents --debug      # 逐行跟踪，DEBUG 级别
 超大文件会拖住后面所有任务。项目自己的排除规则用 `skip_file_patterns` 添加。
 
 安装：Python 3.10+，macOS / Linux / Windows；硬件要求见[硬件要求](#硬件要求)。
-`pip install -e ".[model]"` 用于源码检出。DocSifter 尚未发布到 PyPI，上面两条命令直接从本仓库安装。
+`pip install -e ".[model]"` 用于源码检出。
 
 **Web 界面：**
 

@@ -146,7 +146,7 @@ six queries per second came from a V100, and CPU is well below that.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "docsifter[model] @ git+https://github.com/heywalter/docsifter.git"
+pip install "docsifter[model]"
 
 docsifter ./examples/sample-docs --model shibing624/chinese-text-correction-1.5b
 ```
@@ -172,7 +172,7 @@ resolves to `/hub` and the load fails on a read-only path.
 **Rule preview only**, with no model download:
 
 ```bash
-pip install git+https://github.com/heywalter/docsifter.git
+pip install docsifter
 docsifter ./examples/sample-docs
 ```
 
@@ -190,8 +190,7 @@ resolves outside the tree, and reviews are serialized, so one oversized file
 holds up everything behind it. Add your own exclusions with `skip_file_patterns`.
 
 Python 3.10+ on macOS, Linux or Windows; see [Hardware](#hardware) for what each
-path needs. `pip install -e ".[model]"` installs from a checkout. DocSifter is
-not on PyPI yet, so both commands above install straight from this repository.
+path needs. `pip install -e ".[model]"` installs from a checkout.
 
 **Web UI:**
 

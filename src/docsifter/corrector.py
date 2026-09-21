@@ -51,8 +51,8 @@ class TransformersBackend:
         if not load_gpt_corrector():
             raise ModelUnavailableError(
                 "AI model runtime is unavailable. Install the model extra "
-                "before selecting a local model: pip install -r "
-                "requirements-model.txt from a checkout, or see the README."
+                "before selecting a local model: pip install docsifter[model], "
+                "or -r requirements-model.txt from a checkout."
             )
 
         try:
