@@ -1,6 +1,6 @@
 [project]
 name = "docsifter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local-first small-model AI reviewer for Markdown and AsciiDoc technical documentation"
 readme = "README.md"
 license = "MIT"

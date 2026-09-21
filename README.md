@@ -14,7 +14,7 @@ Language: English | [Chinese](README-CN.md)
 
 **[See it in action](https://flowingdocs.com/demos/docsifter/index-en.html)** -- a scrolling walkthrough with a two-and-a-half-minute video.
 
-![DocSifter Web UI](docs/images/web-ui.png)
+![DocSifter Web UI](https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/web-ui.png)
 
 ## Why DocSifter
 
@@ -42,8 +42,8 @@ names and domain terms stay on the screen.
 ## Layered AI Review
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/architecture-dark.svg">
-  <img alt="Three review layers run on your machine: rule preview, a local small model, and an optional LLM second pass that is the only step reaching an external endpoint." src="docs/images/architecture-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/architecture-dark.svg">
+  <img alt="Three review layers run on your machine: rule preview, a local small model, and an optional LLM second pass that is the only step reaching an external endpoint." src="https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/architecture-light.svg">
 </picture>
 
 Both the CLI and the Web UI start at rule preview, so a first run never
@@ -64,7 +64,7 @@ time it is selected:
 | Model | Avg F1 | Notes |
 | --- | --- | --- |
 | `shibing624/chinese-text-correction-1.5b` | 0.68 | Default. About 3.1 GB and the CPU-friendly option; every DocSifter measurement below used it. |
-| `twnlp/ChineseErrorCorrector3-4B` | **0.85** | Highest of the three, from [ChineseErrorCorrector](https://github.com/TW-NLP/ChineseErrorCorrector), and small enough for a 12 GB card. Not verified here. |
+| `twnlp/ChineseErrorCorrector3-4B` | **0.85** | Highest of the three, from [ChineseErrorCorrector](https://github.com/TW-NLP/ChineseErrorCorrector), and small enough for a 12 GB card. Runs here; not measured against the corpus below. |
 | `shibing624/chinese-text-correction-7b` | 0.82 | Same family as the default, larger. Not verified here: it does not fit the card this was built on. |
 
 Avg F1 is the mean over SIGHAN-2015, EC-LAW and MCSC from the pycorrector
@@ -128,12 +128,12 @@ python3 benchmarks/run_benchmark.py --backend ollama --base-url http://127.0.0.1
 | Rule preview | Nothing in particular: no model download, no GPU. |
 | 1.5B on CPU | Works, and is slow. 8 GB of system memory at a minimum, 16 GB is more comfortable. |
 | 1.5B on GPU | The recommended setup, and what this was built on: an RTX 3060 with 12 GB holds the model comfortably. |
-| 4B on GPU | Untested here, but at fp16 its weights come to roughly 8 GB, so a 12 GB card has room for it. |
+| 4B on GPU | Runs on the 12 GB card this was built on; at fp16 its weights come to roughly 8 GB. |
 | 7B on GPU | Untested here. At fp16 its weights alone come to roughly 14 GB, past what a 12 GB card holds, so it wants a larger one. |
 
-Neither the 4B nor the 7B has been run here -- the 7B does not fit 12 GB and no
-larger card was available, and the 4B was added on the strength of its published
-score. Treat both rows as arithmetic rather than experience.
+The 7B has never been run here: it does not fit 12 GB and no larger card was
+available, so that row is arithmetic rather than experience. The 4B does run,
+though its output has not been measured against the corpus below.
 
 A GPU is a recommendation, not a requirement: every layer runs on CPU and the
 rule layer loads no model at all. What it buys is turnaround -- the model card's
@@ -344,7 +344,7 @@ then each finding with its original line, the suggestion, the rule that fired
 and its severity. Any finding can be marked a false positive from the report
 itself, and the filter applies to later reviews.
 
-![DocSifter review report](docs/images/report.png)
+![DocSifter review report](https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/report.png)
 
 ## API Example
 

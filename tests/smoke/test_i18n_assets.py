@@ -198,3 +198,22 @@ def test_report_template_stays_self_contained():
             if not url.startswith("http://www.w3.org/")  # SVG/XML namespaces
         ]
         assert external == [], f"{path.name} references {external}"
+
+
+def test_readme_images_are_absolute_urls():
+    """README.md is the PyPI long description, and PyPI is not GitHub.
+
+    A relative path like `docs/images/web-ui.png` resolves against
+    pypi.org/project/docsifter/ there and 404s, so every image the README shows
+    has to carry a full URL. Verified with PyPI's own renderer, which also drops
+    <source>, leaving <picture> to fall back to its <img>.
+    """
+    import re
+
+    root = Path(__file__).resolve().parents[2]
+    for name in ("README.md", "README-CN.md"):
+        text = (root / name).read_text(encoding="utf-8")
+        markdown = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
+        html = re.findall(r'(?:src|srcset)="([^"]+)"', text)
+        relative = [u for u in markdown + html if not u.startswith(("http://", "https://"))]
+        assert relative == [], f"{name} shows images by relative path: {relative}"

@@ -4,6 +4,24 @@ All notable changes to this project are documented in this file. The format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-09-21
+
+### Fixed
+
+- README images did not render on PyPI. They were written as repository-relative
+  paths, which resolve against `pypi.org/project/docsifter/` there rather than
+  against the repository, so the project page carried three broken images from
+  the moment 0.1.0 was published. Every image now uses a full URL. PyPI's own
+  renderer confirms it, and a test keeps relative paths from coming back --
+  the same renderer also drops `<source>`, so the architecture diagram falls
+  back to its light theme there while `<picture>` still switches on GitHub.
+
+### Changed
+
+- `twnlp/ChineseErrorCorrector3-4B` is recorded as running on the card this was
+  built on, rather than as unverified. Its output has still not been measured
+  against the benchmark corpus.
+
 ## [0.1.0] - 2026-09-21
 
 Initial public release.

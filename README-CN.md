@@ -10,7 +10,7 @@ DocSifter 是一个面向技术文档的本地小模型 AI 审查与纠错工具
 
 **[看它实际跑起来](https://flowingdocs.com/demos/docsifter/)** —— 滚动式介绍页，含两分多钟的演示视频。
 
-![DocSifter Web 界面](docs/images/web-ui-cn.png)
+![DocSifter Web 界面](https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/web-ui-cn.png)
 
 ## 为什么做这个项目
 
@@ -34,8 +34,8 @@ SQL、API 名和领域术语留在屏幕上。
 ## 分层 AI 审阅
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/architecture-dark.svg">
-  <img alt="三层审阅都在本机运行：规则预览、本地小模型，以及可选的 LLM 二次复核——它是唯一一个会连到外部端点的环节。" src="docs/images/architecture-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/architecture-dark.svg">
+  <img alt="三层审阅都在本机运行：规则预览、本地小模型，以及可选的 LLM 二次复核——它是唯一一个会连到外部端点的环节。" src="https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/architecture-light.svg">
 </picture>
 
 CLI 和 Web UI 都从规则预览起步，首次运行不会隐式下载数 GB 的模型权重。
@@ -52,7 +52,7 @@ CLI 和 Web UI 都从规则预览起步，首次运行不会隐式下载数 GB �
 | 模型 | 平均 F1 | 说明 |
 | --- | --- | --- |
 | `shibing624/chinese-text-correction-1.5b` | 0.68 | 默认。约 3.1 GB，对 CPU 最友好；下文 DocSifter 自己的实测都基于它。 |
-| `twnlp/ChineseErrorCorrector3-4B` | **0.85** | 三者中最高，来自 [ChineseErrorCorrector](https://github.com/TW-NLP/ChineseErrorCorrector)，体量也装得进 12 GB 显卡。本项目未验证。 |
+| `twnlp/ChineseErrorCorrector3-4B` | **0.85** | 三者中最高，来自 [ChineseErrorCorrector](https://github.com/TW-NLP/ChineseErrorCorrector)，体量也装得进 12 GB 显卡。本项目跑通过，但没有用下面的语料集测过。 |
 | `shibing624/chinese-text-correction-7b` | 0.82 | 与默认同系列，更大。本项目未验证：开发用的显卡装不下。 |
 
 平均 F1 是 pycorrector 榜单上 SIGHAN-2015、EC-LAW、MCSC 三个数据集的均值，测试环境为
@@ -116,11 +116,11 @@ python3 benchmarks/run_benchmark.py --backend openai --base-url https://your-end
 | 规则预览 | 没有特别要求：不下载模型，不需要显卡。 |
 | 1.5B 跑 CPU | 能跑，但慢。系统内存至少 8 GB，16 GB 更从容。 |
 | 1.5B 跑 GPU | 推荐配置，本项目就是在这张卡上开发的：RTX 3060 12 GB 可以轻松装下。 |
-| 4B 跑 GPU | 本项目未验证，但 fp16 下权重约 8 GB，12 GB 显卡放得下。 |
+| 4B 跑 GPU | 在开发用的 12 GB 显卡上跑得起来；fp16 下权重约 8 GB。 |
 | 7B 跑 GPU | 本项目未验证。fp16 下仅权重就约 14 GB，超出 12 GB 显存，需要更大的卡。 |
 
-4B 和 7B 本项目都没有实际跑过——7B 是 12 GB 显存装不下、也没有更大的卡，4B 则是看它公布的
-分数加进来的。这两行请当作推算，而不是实测经验。
+7B 本项目从未跑过：12 GB 显存装不下，也没有更大的卡，所以那一行是推算而非实测。4B 是跑得起来的，
+只是没有用下面的语料集量过它的实际效果。
 
 显卡是推荐项而非必需项——每一层都能在 CPU 上跑，规则层更是完全不加载模型。显卡买到的是
 周转速度：模型卡片上每秒 6 次查询是在 Tesla V100 上测的，CPU 推理远低于这个数。
@@ -311,7 +311,7 @@ Web UI 和管理 API 会启用 HTTP Basic/Bearer 鉴权。浏览器登录时用�
 原文、建议改法、命中的规则及其严重级别。任何一条都可以直接在报告里标记为误报，
 该过滤会在后续审阅中生效。
 
-![DocSifter 审阅报告](docs/images/report.png)
+![DocSifter 审阅报告](https://raw.githubusercontent.com/heywalter/docsifter/main/docs/images/report.png)
 
 ## API 示例
 
